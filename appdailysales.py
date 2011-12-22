@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding: utf-8
 #
 # appdailysales.py
 #
@@ -284,7 +285,7 @@ def downloadFile(options):
     # it appears that Apple can lock an Apple ID selectively from certain IP's.
     # we were hit by this when switching from a godaddy box to an EC2 image.  the
     # script still worked from godaddy's IP range, but not from EC2 images.
-    if (html.find('This Apple ID has been locked for security reasons.') != -1):
+    if (html.find('This Apple ID has been\xc2\xa0locked\xc2\xa0for security reasons') != -1):
         raise ITCException, 'Apple ID Locked.'
 
     # Find the Sales and Trends URL.
