@@ -288,6 +288,9 @@ def downloadFile(options):
     if (html.find('This Apple ID has been\xc2\xa0locked\xc2\xa0for security reasons') != -1):
         raise ITCException, 'Apple ID Locked.'
 
+    if (html.find('iTunes Connect is closed for the holidays') != -1):
+        raise ITCException, 'Closed for the holidays.'
+
     # Find the Sales and Trends URL.
     if options.verbose == True:
         print 'Accessing Sales and Trends reporting web site.'
