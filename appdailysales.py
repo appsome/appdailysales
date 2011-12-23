@@ -267,6 +267,10 @@ def downloadFile(options):
     # form action for logging into the site.
     urlWebsite = urlITCBase % '/WebObjects/iTunesConnect.woa'
     html = readHtml(opener, urlWebsite, options=options)
+
+    if (html.find('iTunes Connect is closed for the holidays') != -1):
+        raise ITCException, 'Closed for the holidays.'
+
     match = re.search('" action="(.*)"', html)
     urlActionLogin = urlITCBase % match.group(1)
 
@@ -287,9 +291,6 @@ def downloadFile(options):
     # script still worked from godaddy's IP range, but not from EC2 images.
     if (html.find('This Apple ID has been\xc2\xa0locked\xc2\xa0for security reasons') != -1):
         raise ITCException, 'Apple ID Locked.'
-
-    if (html.find('iTunes Connect is closed for the holidays') != -1):
-        raise ITCException, 'Closed for the holidays.'
 
     # Find the Sales and Trends URL.
     if options.verbose == True:
