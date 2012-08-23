@@ -65,6 +65,7 @@ dateToDownload = None
 outputFormat = None
 overWriteFiles = True
 proxy = ''
+downloadAll = False
 debug = False
 # ----------------------------------------------------
 
@@ -127,6 +128,8 @@ class ReportOptions:
             return overWriteFiles
         elif attrname == 'proxy':
             return proxy
+        elif attrname == 'downloadAll':
+            return downloadAll
         elif attrname == 'debug':
             return debug
         else:
@@ -143,6 +146,7 @@ Options and arguments:
 -o dir : directory where download file is stored, default is the current working directory (also --outputDirectory)
 -v     : verbose output, default is off (also --verbose)
 -u     : unzip download file, default is off (also --unzip)
+-A     : donwload all available reports
 -d num : number of days to download, default is 1 (also --days)
 -D mm/dd/yyyy : report date to download, -d option is ignored when -D is used (also --date)
 -f format : output file name format (see strftime; also --format)
@@ -162,12 +166,13 @@ def processCmdArgs():
     global outputFormat
     global overWriteFiles
     global proxy
+    global downloadAll
     global debug
 
     # Check for command line options. The command line options
     # override the globals set above if present.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:Po:uvd:D:f:n', ['help', 'appleId=', 'password=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose', 'days=', 'date=', 'format=', 'noOverWriteFiles', 'proxy=', 'debug'])
+        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:Po:uvd:D:f:n:A', ['help', 'appleId=', 'password=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose', 'days=', 'date=', 'format=', 'noOverWriteFiles', 'downloadAll', 'proxy=', 'debug'])
     except getopt.GetoptError, err:
         #print help information and exit
         print str(err)  # will print something like "option -x not recongized"
@@ -200,6 +205,8 @@ def processCmdArgs():
             overWriteFiles = False
         elif o in ('-o', '--proxy'):
             proxy = a
+        elif o in ('-A'):
+            downloadAll = True
         elif o in ('--debug'):
             debug = True
             verbose = True # Turn on verbose if debug option is on.
@@ -389,7 +396,6 @@ def downloadFile(options):
         else:
             raise ITCException, errMessage
 
-
     # Click through from the dashboard to the sales page.
     webFormSalesReportData = urllib.urlencode({'AJAXREQUEST':ajaxName, 'theForm':'theForm', 'theForm:xyz':'notnormal', 'theForm:vendorType':'Y', 'theForm:datePickerSourceSelectElementSales':dateListAvailableDays[0], 'theForm:weekPickerSourceSelectElement':dateListAvailableWeeks[0], 'javax.faces.ViewState':viewState, dailyName:dailyName, 'theForm:optInVar':'A',  'theForm:dateType':'D', 'theForm:optInVarRender':'false', 'theForm:wklyBool':'false'})
     html = readHtml(opener, urlSalesReport, webFormSalesReportData, options=options)
@@ -402,7 +408,9 @@ def downloadFile(options):
     # from the web site instead of generating the dates. Will
     # consider doing this in the future.
     reportDates = []
-    if options.dateToDownload == None:
+    if options.downloadAll:
+        reportDates = [ datetime.datetime.strptime(d, '%m/%d/%Y') for d in dateListAvailableDays ]
+    elif options.dateToDownload == None:
         for i in range(int(options.daysToDownload)):
             today = datetime.date.today() - datetime.timedelta(i + 1)
             reportDates.append( today )
@@ -527,6 +535,7 @@ def main():
     options.outputFormat = outputFormat
     options.overWriteFiles = overWriteFiles
     options.proxy = proxy
+    options.downloadAll = downloadAll
     options.debug = debug
 
     # Download the file.
