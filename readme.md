@@ -7,6 +7,7 @@ Here are some suggested alternatives for those looking for a more "guaranteed to
 - [AppFigures](http://www.appfigures.com/)
 - [App Annie](http://www.appannie.com/)
 - [AppViz](http://www.ideaswarm.com/AppViz2.html)
+- [Distimo Monitor](http://monitor.distimo.com/)
 
 ## So Long, and Thanks for all the Fish
 
@@ -17,6 +18,12 @@ Thanks to the users, and bigger thanks to those who have contributed to the scri
 # Introduction
 
 AppDailySales is a Python script that will download daily sales report files from the iTunes Connect web site.  
+
+# About this fork
+
+As original repository is no longer maintained, we decided to give it a little love. Waiting pull requests had been merged and we fixed some minor typos and errors.
+
+We'll try to contribute as much as we can, but feel free to submit your patches. 
 
 # How to Use
 
