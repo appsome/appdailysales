@@ -106,7 +106,7 @@ class ReportOptions:
             return appleId
         elif attrname == 'password':
             return password
-        elif attrname == 'venderId':
+        elif attrname == 'vendorId':
             return vendorId
         elif attrname == 'outputDirectory':
             return outputDirectory
@@ -138,7 +138,7 @@ Options and arguments:
 -h     : print this help message and exit (also --help)
 -a uid : your apple id (also --appleId)
 -p pwd : your password (also --password)
--V vid : your vendor id (also --venderId)
+-V vid : your vendor id (also --vendorId)
 -P     : read the password from stdin (also --passwordStdin)
 -o dir : directory where download file is stored, default is the current working directory (also --outputDirectory)
 -v     : verbose output, default is off (also --verbose)
@@ -170,7 +170,7 @@ def processCmdArgs():
     # Check for command line options. The command line options
     # override the globals set above if present.
     try: 
-        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:V:Po:uvd:D:f:', ['help', 'appleId=', 'password=', 'venderId=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose', 'days=', 'date=', 'format=', 'debug'])
+        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:V:Po:uvd:D:f:', ['help', 'appleId=', 'password=', 'vendorId=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose', 'days=', 'date=', 'format=', 'debug'])
     except getopt.GetoptError, err:
         #print help information and exit
         print str(err)  # will print something like "option -x not recongized"
@@ -185,7 +185,7 @@ def processCmdArgs():
             appleId = a
         elif o in ('-p', '--password'):
             password = a
-        elif o in ('-V', '--venderId'):
+        elif o in ('-V', '--vendorId'):
             vendorId = a
         elif o in ('-P', '--passwordStdin'):
             password = getpass.getpass()
@@ -246,7 +246,7 @@ def downloadFile(options):
     for downloadReportDate in reportDates:
         dateString = downloadReportDate.strftime('%Y%m%d')
         path = os.path.realpath(os.path.dirname(sys.argv[0]))
-        
+
         output = subprocess.check_output(['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
         print output
         lines = output.split('\n')
