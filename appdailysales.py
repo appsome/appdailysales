@@ -279,9 +279,10 @@ def downloadFile(options):
             downloadFile.close()
             infile.close()
             
-            if options.verbose:
-                print 'Deleting archive file: ', gzfile
-            os.remove(gzfile)
+            if options.unzipFile:
+				if options.verbose:
+					print 'Deleting archive file: ', gzfile
+				os.remove(gzfile)
 
             filenames.append( filename )
         else:
