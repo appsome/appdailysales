@@ -79,8 +79,9 @@ import subprocess
 
 
 class ITCException(Exception):
-    def __init__(self,value):
+    def __init__(self, value):
         self.value = value
+
     def __str__(self):
         return repr(self.value);
 
@@ -140,7 +141,7 @@ Options and arguments:
 -p pwd : your password (also --password)
 -V vid : your vendor id (also --vendorId)
 -P     : read the password from stdin (also --passwordStdin)
--o dir : directory where download file is stored, default is the current working directory (also --outputDirectory)
+-o dir : directory where download file is stored, default is the current working directory (also --outputDirectory), supports strftime formatting
 -v     : verbose output, default is off (also --verbose)
 -u     : unzip download file, default is off (also --unzip)
 -A     : donwload all available reports
@@ -169,8 +170,10 @@ def processCmdArgs():
 
     # Check for command line options. The command line options
     # override the globals set above if present.
-    try: 
-        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:V:Po:uvd:D:f:', ['help', 'appleId=', 'password=', 'vendorId=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose', 'days=', 'date=', 'format=', 'debug'])
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'ha:p:V:Po:uvd:D:f:',
+            ['help', 'appleId=', 'password=', 'vendorId=', 'passwordStdin', 'outputDirectory=', 'unzip', 'verbose',
+             'days=', 'date=', 'format=', 'debug'])
     except getopt.GetoptError, err:
         #print help information and exit
         print str(err)  # will print something like "option -x not recongized"
@@ -213,12 +216,10 @@ def processCmdArgs():
         else:
             assert False, 'unhandled option'
 
+
 def downloadFile(options):
     if options.verbose:
         print '-- begin script --'
-
-    if (options.outputDirectory != '' and not os.path.exists(options.outputDirectory)):
-        os.makedirs(options.outputDirectory)
 
     # Set the list of report dates.
     # A better approach is to grab the list of available dates
@@ -226,11 +227,11 @@ def downloadFile(options):
     # consider doing this in the future.
     reportDates = []
     if options.downloadAll:
-        reportDates = [ datetime.datetime.strptime(d, '%m/%d/%Y') for d in dateListAvailableDays ]
+        reportDates = [datetime.datetime.strptime(d, '%m/%d/%Y') for d in dateListAvailableDays]
     elif options.dateToDownload == None:
         for i in range(int(options.daysToDownload)):
             today = datetime.date.today() - datetime.timedelta(i + 1)
-            reportDates.append( today )
+            reportDates.append(today)
     else:
         reportDates = [datetime.datetime.strptime(options.dateToDownload, '%m/%d/%Y').date()]
 
@@ -244,58 +245,62 @@ def downloadFile(options):
     unavailableCount = 0
     filenames = []
     for downloadReportDate in reportDates:
-        dateString = downloadReportDate.strftime('%Y%m%d')
-        path = os.path.realpath(os.path.dirname(sys.argv[0]))
+        outputDirectory = downloadReportDate.strftime(options.outputDirectory)
+    if (outputDirectory != '' and not os.path.exists(outputDirectory)):
+        os.makedirs(outputDirectory)
 
-        output = subprocess.check_output(['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
-        print output
-        lines = output.split('\n')
-        
-        if len(lines) >= 2 and lines[1].lower().startswith('file downloaded successfully'):
-            gzfile = lines[0]
-            # Check for an override of the file name. If found then set the file
-            # name to match the outputFormat.
-            if (options.outputFormat):
-                filename = downloadReportDate.strftime(options.outputFormat)
-            else:
-                filename = gzfile
-            
-            if options.unzipFile:
-                if options.verbose:
-                    print 'Unzipping archive file: ', gzfile
-                infile = gzip.GzipFile(gzfile)
-            else:
-                infile = open(gzfile, 'rb')
-            
-            filename = os.path.join(options.outputDirectory, filename)
-            if options.unzipFile and filename[-3:] == '.gz': #Chop off .gz extension if not needed
-                filename = os.path.splitext( filename )[0]
+    dateString = downloadReportDate.strftime('%Y%m%d')
+    path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
-            if options.verbose:
-                print 'Saving download file:', filename
+    output = subprocess.check_output(
+        ['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
+    print output
+    lines = output.split('\n')
 
-            downloadFile = open(filename, 'wb')
-            downloadFile.write(infile.read())
-            downloadFile.close()
-            infile.close()
-            
-            if options.unzipFile:
-				if options.verbose:
-					print 'Deleting archive file: ', gzfile
-				os.remove(gzfile)
-
-            filenames.append( filename )
+    if len(lines) >= 2 and lines[1].lower().startswith('file downloaded successfully'):
+        gzfile = lines[0]
+        # Check for an override of the file name. If found then set the file
+        # name to match the outputFormat.
+        if (options.outputFormat):
+            filename = downloadReportDate.strftime(options.outputFormat)
         else:
-            print 'Report failed to download for', downloadReportDate
-            unavailableCount += 1
+            filename = gzfile
+
+        if options.unzipFile:
+            if options.verbose:
+                print 'Unzipping archive file: ', gzfile
+            infile = gzip.GzipFile(gzfile)
+        else:
+            infile = open(gzfile, 'rb')
+
+        filename = os.path.join(outputDirectory, filename)
+        if options.unzipFile and filename[-3:] == '.gz': #Chop off .gz extension if not needed
+            filename = os.path.splitext(filename)[0]
+
+        if options.verbose:
+            print 'Saving download file:', filename
+
+        downloadFile = open(filename, 'wb')
+        downloadFile.write(infile.read())
+        downloadFile.close()
+        infile.close()
+
+        if options.unzipFile:
+            if options.verbose:
+                print 'Deleting archive file: ', gzfile
+            os.remove(gzfile)
+
+        filenames.append(filename)
+    else:
+        print 'Report failed to download for', downloadReportDate
+        unavailableCount += 1
+
     # End for downloadReportDate in reportDates:
     ####
 
     if unavailableCount > 0:
         raise ITCException, '%i report(s) not available - try again later' % unavailableCount
 
-    if options.debug:
-        os.remove(os.path.join(options.outputDirectory, "temp.html"))
     if options.verbose:
         print '-- end of script --'
 
@@ -304,7 +309,7 @@ def downloadFile(options):
 
 def main():
     if processCmdArgs() > 0:    # Will exit if usgae requested or invalid argument found.
-      return 2
+        return 2
 
     # Set report options.
     options = ReportOptions()
@@ -330,4 +335,4 @@ def main():
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+    sys.exit(main())

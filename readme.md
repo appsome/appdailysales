@@ -44,9 +44,9 @@ Download the script appdailysales.py, install Autoingestion.class, and run the c
     -h     : print this help message and exit (also --help)
     -a uid : your apple id (also --appleId)
     -p pwd : your password (also --password)
-    -v vid : your vendor id (also --vendorId)
+    -V vid : your vendor id (also --vendorId)
     -P     : read the password from stdin (also --passwordStdin)
-    -o dir : directory where download file is stored, default is the current working directory (also --outputDirectory)
+    -o dir : directory where download file is stored, default is the current working directory (also --outputDirectory), supports strftime formatting
     -v     : verbose output, default is off (also --verbose)
     -u     : unzip download file, default is off (also --unzip)
     -d num : number of days to download, default is 1 (also --days)
@@ -111,6 +111,10 @@ Version 2.4 introduces the new --debug flag. This flag will display additional v
 
 # Change History
 
+**Version 3.0.1**
+
+  * -o also supports strftime formatting (i.e. -o %Y/%m/%d)
+ 
 **Version 3.0**
 
   * Use Apple's Autoingestion Java program instead of screen scraping.
