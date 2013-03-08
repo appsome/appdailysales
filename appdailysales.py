@@ -246,54 +246,54 @@ def downloadFile(options):
     filenames = []
     for downloadReportDate in reportDates:
         outputDirectory = downloadReportDate.strftime(options.outputDirectory)
-    if (outputDirectory != '' and not os.path.exists(outputDirectory)):
-        os.makedirs(outputDirectory)
+        if (outputDirectory != '' and not os.path.exists(outputDirectory)):
+            os.makedirs(outputDirectory)
 
-    dateString = downloadReportDate.strftime('%Y%m%d')
-    path = os.path.realpath(os.path.dirname(sys.argv[0]))
+        dateString = downloadReportDate.strftime('%Y%m%d')
+        path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
-    output = subprocess.check_output(
-        ['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
-    print output
-    lines = output.split('\n')
+        output = subprocess.check_output(
+            ['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
+        print output
+        lines = output.split('\n')
 
-    if len(lines) >= 2 and lines[1].lower().startswith('file downloaded successfully'):
-        gzfile = lines[0]
-        # Check for an override of the file name. If found then set the file
-        # name to match the outputFormat.
-        if (options.outputFormat):
-            filename = downloadReportDate.strftime(options.outputFormat)
-        else:
-            filename = gzfile
+        if len(lines) >= 2 and lines[1].lower().startswith('file downloaded successfully'):
+            gzfile = lines[0]
+            # Check for an override of the file name. If found then set the file
+            # name to match the outputFormat.
+            if (options.outputFormat):
+                filename = downloadReportDate.strftime(options.outputFormat)
+            else:
+                filename = gzfile
 
-        if options.unzipFile:
+            if options.unzipFile:
+                if options.verbose:
+                    print 'Unzipping archive file: ', gzfile
+                infile = gzip.GzipFile(gzfile)
+            else:
+                infile = open(gzfile, 'rb')
+
+            filename = os.path.join(outputDirectory, filename)
+            if options.unzipFile and filename[-3:] == '.gz': #Chop off .gz extension if not needed
+                filename = os.path.splitext(filename)[0]
+
             if options.verbose:
-                print 'Unzipping archive file: ', gzfile
-            infile = gzip.GzipFile(gzfile)
+                print 'Saving download file:', filename
+
+            downloadFile = open(filename, 'wb')
+            downloadFile.write(infile.read())
+            downloadFile.close()
+            infile.close()
+
+            if options.unzipFile:
+                if options.verbose:
+                    print 'Deleting archive file: ', gzfile
+                os.remove(gzfile)
+
+            filenames.append(filename)
         else:
-            infile = open(gzfile, 'rb')
-
-        filename = os.path.join(outputDirectory, filename)
-        if options.unzipFile and filename[-3:] == '.gz': #Chop off .gz extension if not needed
-            filename = os.path.splitext(filename)[0]
-
-        if options.verbose:
-            print 'Saving download file:', filename
-
-        downloadFile = open(filename, 'wb')
-        downloadFile.write(infile.read())
-        downloadFile.close()
-        infile.close()
-
-        if options.unzipFile:
-            if options.verbose:
-                print 'Deleting archive file: ', gzfile
-            os.remove(gzfile)
-
-        filenames.append(filename)
-    else:
-        print 'Report failed to download for', downloadReportDate
-        unavailableCount += 1
+            print 'Report failed to download for', downloadReportDate
+            unavailableCount += 1
 
     # End for downloadReportDate in reportDates:
     ####
