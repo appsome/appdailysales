@@ -251,9 +251,7 @@ def downloadFile(options):
 
         dateString = downloadReportDate.strftime('%Y%m%d')
         path = os.path.realpath(os.path.dirname(sys.argv[0]))
-
-        output = subprocess.check_output(
-            ['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString])
+        output = subprocess.Popen(['java', '-cp', path, 'Autoingestion', appleId, password, vendorId, 'Sales', 'Daily', 'Summary', dateString], stdout=subprocess.PIPE).communicate()[0]
         print output
         lines = output.split('\n')
 
